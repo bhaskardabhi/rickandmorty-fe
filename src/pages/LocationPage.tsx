@@ -118,22 +118,6 @@ export default function LocationPage() {
     fetchEvaluation();
   }, [description, id]);
 
-  // Save user score
-  const handleSaveScore = () => {
-    if (userScore === null || !id) return;
-    
-    const scoreKey = `location_evaluation_${id}`;
-    try {
-      localStorage.setItem(scoreKey, JSON.stringify({
-        score: userScore,
-        timestamp: new Date().toISOString(),
-        evaluation: evaluation,
-      }));
-      alert('Score saved!');
-    } catch (err) {
-      console.warn('Error saving score:', err);
-    }
-  };
 
   // Load saved score
   useEffect(() => {

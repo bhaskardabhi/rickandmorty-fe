@@ -1,94 +1,162 @@
 # Rick & Morty Universe Explorer
 
-A modern web application to explore the Rick & Morty universe using the Rick & Morty GraphQL API.
+A modern web application to explore the Rick & Morty universe with AI-powered descriptions, evaluations, and semantic search.
 
 ## Features
 
-- **Locations Page**: Browse all locations in the Rick & Morty universe with pagination
-- **Total Character Count**: See the total number of characters across all locations
-- **Location Details**: View all residents of a specific location with pagination
-- **Character Details**: Deep dive into individual character information including:
-  - Status, species, type, gender
-  - Origin and current location
-  - Episode appearances
-  - Character images
+- **Locations Page**: Browse all locations with AI-generated descriptions and quality evaluations
+- **Character Pages**: View character details with AI-generated descriptions, insights, and notes
+- **Semantic Search**: Search characters and locations by description using vector embeddings
+- **Description Evaluation**: Quality scores for AI-generated descriptions
+- **Character Insights**: AI-powered insights and notes about characters
+- **Compatibility Analysis**: Analyze how characters would interact together
 
 ## Tech Stack
 
-- **Next.js 14**: React framework with App Router
+- **React + Vite**: Fast development and builds
 - **TypeScript**: Type-safe development
 - **Apollo Client**: GraphQL client for data fetching
 - **Tailwind CSS**: Modern, responsive styling
+- **React Router**: Client-side routing
 - **Rick & Morty GraphQL API**: https://rickandmortyapi.com/graphql
-
-## Why GraphQL?
-
-I chose GraphQL over REST for this project because:
-
-1. **Flexibility**: GraphQL allows fetching exactly the data needed in a single query, reducing over-fetching
-2. **Query Efficiency**: Can fetch nested relationships (like location with residents) in one request
-3. **Developer Ergonomics**: Strong typing and introspection make development faster
-4. **Future-proof**: Easy to extend queries as new features are added
 
 ## Getting Started
 
-1. Install dependencies:
+### 1. Install Dependencies
+
 ```bash
 npm install
 ```
 
-2. Run the development server:
+### 2. Configuration
+
+Create a `.env.local` file in the root of the frontend project:
+
+```bash
+# Backend API URL
+VITE_BACKEND_URL=http://localhost:3001
+
+# GraphQL API URL (optional, defaults to Rick and Morty API)
+VITE_GRAPHQL_URL=https://rickandmortyapi.com/graphql
+```
+
+**Important Notes:**
+- Only variables prefixed with `VITE_` are exposed to the browser
+- `.env.local` is gitignored and should not be committed
+- Configuration is centralized in `src/lib/config.ts` for easy access
+
+### 3. Start the Backend Server
+
+The frontend requires the backend server to be running for AI-generated descriptions, evaluations, and search.
+
+**Open a new terminal window/tab:**
+
+```bash
+cd rickandmorty-be
+npm run dev
+```
+
+**Verify it's running:**
+```bash
+curl http://localhost:3001/health
+```
+
+Should return: `{"status":"ok"}`
+
+**Required Backend Environment Variables:**
+- `GROQ_API_KEY` - For LLM operations
+- `GOOGLE_API_KEY` - For embeddings and vision (optional, for search features)
+
+### 4. Start the Frontend
+
+In a separate terminal:
+
 ```bash
 npm run dev
 ```
 
-3. Open [http://localhost:3000](http://localhost:3000) in your browser
+Open [http://localhost:5173](http://localhost:5173) in your browser
+
+## Running Both Servers
+
+You need **TWO terminal windows**:
+
+**Terminal 1 - Backend:**
+```bash
+git clone git@github.com:bhaskardabhi/rickandmorty-be.git
+cd rickandmorty-be
+npm run dev
+```
+
+**Terminal 2 - Frontend:**
+```bash
+git clone git@github.com:bhaskardabhi/rickandmorty-fe.git
+cd rickandmorty-fe
+npm run dev
+```
 
 ## Project Structure
 
 ```
-rickandmorty/
-├── app/
-│   ├── layout.tsx          # Root layout with Apollo provider
-│   ├── page.tsx            # Locations listing page
-│   ├── location/[id]/      # Location detail page
-│   └── character/[id]/     # Character detail page
+src/
+├── pages/
+│   ├── Home.tsx           # Main page with locations and search
+│   ├── LocationPage.tsx   # Location details with description and evaluation
+│   └── CharacterPage.tsx  # Character details with description, insights, and notes
 ├── components/
-│   └── ApolloWrapper.tsx   # Apollo Client provider wrapper
+│   └── CharacterCompatibilityGenerator.tsx
 ├── lib/
-│   ├── apollo-client.ts    # Apollo Client configuration
+│   ├── apollo-client.ts   # Apollo Client configuration
+│   ├── config.ts          # Centralized configuration
 │   └── graphql/
-│       └── queries.ts      # GraphQL queries
-└── ...
+│       └── queries.ts     # GraphQL queries
+├── App.tsx                # Main app with routing
+└── main.tsx               # Entry point
 ```
 
-## Features Implementation
+## Features
 
-### Locations Page
-- Displays all locations with pagination
-- Shows total character count across all displayed locations
-- Each location card shows type, dimension, and resident count
-- Click on a location to view its residents
+### Home Page
+- Browse all locations with pagination
+- Semantic search with autosuggest for characters and locations
+- Search results show character images and location names
 
 ### Location Detail Page
-- Shows location information (name, type, dimension)
-- Lists all residents with pagination (12 per page)
-- Each resident card shows image, name, status, species, and gender
-- Click on a resident to view full character details
+- AI-generated location descriptions
+- Quality evaluation scores with detailed breakdown
+- List of residents with pagination
 
 ### Character Detail Page
-- Complete character information
-- Large character image
-- Status, species, type, gender
-- Origin and current location details
-- List of episodes the character appeared in
+- AI-generated character descriptions with visual appearance
+- Quality evaluation scores with detailed breakdown
+- AI-generated insights and notes
+- Custom notes functionality
+- Episode appearances
 
-## UI/UX Features
+## Configuration
 
-- Modern gradient background with Rick & Morty color scheme
-- Responsive design (mobile, tablet, desktop)
-- Smooth hover animations and transitions
-- Glassmorphism effects with backdrop blur
-- Color-coded status indicators (Alive = green, Dead = red)
-- Intuitive navigation with back buttons
+### Environment Variables
 
+| Variable | Default | Description |
+|---------|---------|-------------|
+| `VITE_BACKEND_URL` | `http://localhost:3001` | Backend API server URL |
+| `VITE_GRAPHQL_URL` | `https://rickandmortyapi.com/graphql` | GraphQL API endpoint |
+
+### Using Configuration in Code
+
+Instead of using `process.env` directly, use the centralized config:
+
+```typescript
+// ❌ Don't do this
+const url = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+
+// ✅ Do this
+import { config } from '@/lib/config';
+const url = config.backendUrl;
+```
+
+This provides:
+- Type safety
+- Single source of truth
+- Easy to update and maintain
+- Default values if env vars are not set
