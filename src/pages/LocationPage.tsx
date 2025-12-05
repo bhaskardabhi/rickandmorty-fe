@@ -218,7 +218,7 @@ export default function LocationPage() {
                   </div>
                 </div>
                 {/* Tooltip */}
-                <div className="absolute right-0 top-full mt-2 w-80 bg-slate-800 text-white text-sm rounded-lg p-4 shadow-xl border border-white/20 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
+                <div className="absolute right-0 top-full mt-2 w-80 bg-slate-800 text-white text-sm rounded-lg p-4 shadow-xl border border-white/20 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                   <div className="space-y-2">
                     <p className="font-semibold text-rick-green mb-2">Score Breakdown:</p>
                     <div className="space-y-1 text-xs">

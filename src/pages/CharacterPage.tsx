@@ -17,6 +17,8 @@ export default function CharacterPage() {
   const [description, setDescription] = useState<string | null>(null);
   const [descriptionLoading, setDescriptionLoading] = useState(true);
   const [descriptionError, setDescriptionError] = useState<string | null>(null);
+  const [evaluation, setEvaluation] = useState<any>(null);
+  const [evaluationLoading, setEvaluationLoading] = useState(false);
   const [insights, setInsights] = useState<string[]>([]);
   const [insightsLoading, setInsightsLoading] = useState(false);
   const [insightsError, setInsightsError] = useState<string | null>(null);
@@ -83,6 +85,37 @@ export default function CharacterPage() {
 
     fetchDescription();
   }, [id]);
+
+  // Automatically fetch evaluation when description is available
+  useEffect(() => {
+    const fetchEvaluation = async () => {
+      if (!description || !id || evaluationLoading || evaluation) return;
+
+      setEvaluationLoading(true);
+      try {
+        const response = await fetch(`${config.backendUrl}/api/character/${id}/evaluate`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ description }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to evaluate description');
+        }
+
+        const result = await response.json();
+        setEvaluation(result.evaluation);
+      } catch (err) {
+        console.error('Error evaluating description:', err);
+      } finally {
+        setEvaluationLoading(false);
+      }
+    };
+
+    fetchEvaluation();
+  }, [description, id]);
 
   // Fetch character insights from backend with frontend caching
   useEffect(() => {
@@ -350,7 +383,58 @@ export default function CharacterPage() {
 
         {/* Character Description Section */}
         <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 mb-6 border border-white/20">
-          <h2 className="text-2xl font-bold text-white mb-4">About {character.name}</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold text-white">About {character.name}</h2>
+            {evaluation && (
+              <div className="flex items-center gap-2 relative group">
+                <div className="bg-white/5 rounded-lg px-4 py-2 border border-white/10">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-300">Quality Score:</span>
+                    <span className="text-2xl font-bold text-rick-green">{evaluation.autoScore}/10</span>
+                  </div>
+                </div>
+                {/* Tooltip */}
+                <div className="absolute right-0 top-full mt-2 w-80 bg-slate-800 text-white text-sm rounded-lg p-4 shadow-xl border border-white/20 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                  <div className="space-y-2">
+                    <p className="font-semibold text-rick-green mb-2">Score Breakdown:</p>
+                    <div className="space-y-1 text-xs">
+                      <p>• <span className="font-semibold">Name mentioned:</span> {evaluation.checks.nameMentioned ? '2 points' : '0 points'}</p>
+                      <p>• <span className="font-semibold">Status mentioned:</span> {evaluation.checks.statusMentioned ? '1 point' : '0 points'}</p>
+                      <p>• <span className="font-semibold">Species mentioned:</span> {evaluation.checks.speciesMentioned ? '1 point' : '0 points'}</p>
+                      {evaluation.characterData.type && evaluation.characterData.type !== 'Unknown' && (
+                        <p>• <span className="font-semibold">Type mentioned:</span> {evaluation.checks.typeMentioned ? '0.5 points' : '0 points'}</p>
+                      )}
+                      <p>• <span className="font-semibold">Gender mentioned:</span> {evaluation.checks.genderMentioned ? '0.5 points' : '0 points'}</p>
+                      {evaluation.characterData.origin && evaluation.characterData.origin !== 'Unknown' && (
+                        <p>• <span className="font-semibold">Origin mentioned:</span> {evaluation.checks.originMentioned ? '1 point' : '0 points'}</p>
+                      )}
+                      {evaluation.characterData.location && evaluation.characterData.location !== 'Unknown' && (
+                        <p>• <span className="font-semibold">Location mentioned:</span> {evaluation.checks.locationMentioned ? '1 point' : '0 points'}</p>
+                      )}
+                      <p>• <span className="font-semibold">Visual appearance mentioned:</span> {evaluation.checks.visualAppearanceMentioned ? '1 point' : '0 points'}</p>
+                      <p>• <span className="font-semibold">Quality indicators:</span> Up to 2 bonus points</p>
+                    </div>
+                    {evaluation.explanation && (
+                      <p className="text-xs text-gray-300 mt-2 pt-2 border-t border-white/10">
+                        {evaluation.explanation}
+                      </p>
+                    )}
+                    <p className="text-xs text-gray-400 mt-2 pt-2 border-t border-white/10">
+                      Score is based on required fields (name, status, species, type, gender, origin, location, visual appearance) and quality indicators (episode context, location context, Rick & Morty style, character depth).
+                    </p>
+                  </div>
+                  {/* Arrow */}
+                  <div className="absolute -top-2 right-4 w-4 h-4 bg-slate-800 border-l border-t border-white/20 transform rotate-45"></div>
+                </div>
+              </div>
+            )}
+            {evaluationLoading && (
+              <div className="flex items-center gap-2 text-gray-400 text-sm">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-rick-green"></div>
+                <span>Evaluating...</span>
+              </div>
+            )}
+          </div>
           {descriptionLoading ? (
             <div className="flex items-center gap-3 text-white">
               <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-rick-green"></div>
