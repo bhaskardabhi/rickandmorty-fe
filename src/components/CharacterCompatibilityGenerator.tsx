@@ -4,9 +4,9 @@ import { GET_ALL_CHARACTERS, GET_LOCATIONS } from '@/lib/graphql/queries';
 import { config } from '@/lib/config';
 
 interface CompatibilityAnalysis {
-  teamWork: string;
-  conflicts: string;
-  breaksFirst: string;
+  teamWork: string[] | string;
+  conflicts: string[] | string;
+  breaksFirst: string[] | string;
 }
 
 export default function CharacterCompatibilityGenerator() {
@@ -77,17 +77,19 @@ export default function CharacterCompatibilityGenerator() {
   const selectedCharacter2 = characters.find((c: any) => c.id === character2Id);
   const selectedLocation = locations.find((l: any) => l.id === locationId);
 
-  // Helper function to convert text to list items
-  const textToListItems = (text: string): string[] => {
-    // Split by sentences, bullet points, or numbered lists
-    const items = text
+  // Helper function to get list items (handles both arrays and strings)
+  const getListItems = (data: string[] | string): string[] => {
+    if (Array.isArray(data)) {
+      return data.filter(item => item && item.trim().length > 0);
+    }
+    // Fallback: if it's a string, convert to array
+    const items = data
       .split(/(?:\n|\.\s+|•\s+|-\s+|\d+\.\s+)/)
       .map(item => item.trim())
       .filter(item => item.length > 0 && !item.match(/^(and|or|but|however|therefore|thus|so|also|furthermore|moreover|in addition|additionally)$/i));
     
-    // If we have fewer than 2 items, try splitting by commas for longer sentences
     if (items.length < 2) {
-      const commaSplit = text.split(/[,;]/).map(item => item.trim()).filter(item => item.length > 10);
+      const commaSplit = data.split(/[,;]/).map(item => item.trim()).filter(item => item.length > 10);
       return commaSplit.length > 1 ? commaSplit : items;
     }
     
@@ -113,6 +115,10 @@ export default function CharacterCompatibilityGenerator() {
           className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
           onClick={() => {
             setIsOpen(false);
+            // Clear all form data
+            setCharacter1Id('');
+            setCharacter2Id('');
+            setLocationId('');
             setAnalysis(null);
             setError(null);
           }}
@@ -127,6 +133,10 @@ export default function CharacterCompatibilityGenerator() {
               <button
                 onClick={() => {
                   setIsOpen(false);
+                  // Clear all form data
+                  setCharacter1Id('');
+                  setCharacter2Id('');
+                  setLocationId('');
                   setAnalysis(null);
                   setError(null);
                 }}
@@ -295,7 +305,7 @@ export default function CharacterCompatibilityGenerator() {
                     Team Work
                   </h4>
                   <ul className="space-y-2">
-                    {textToListItems(analysis.teamWork).map((item, index) => (
+                    {getListItems(analysis.teamWork).map((item, index) => (
                       <li key={index} className="text-sm text-gray-200 flex items-start gap-2">
                         <span className="text-rick-green mt-1.5">•</span>
                         <span>{item}</span>
@@ -311,7 +321,7 @@ export default function CharacterCompatibilityGenerator() {
                     Conflicts
                   </h4>
                   <ul className="space-y-2">
-                    {textToListItems(analysis.conflicts).map((item, index) => (
+                    {getListItems(analysis.conflicts).map((item, index) => (
                       <li key={index} className="text-sm text-gray-200 flex items-start gap-2">
                         <span className="text-red-400 mt-1.5">•</span>
                         <span>{item}</span>
@@ -327,7 +337,7 @@ export default function CharacterCompatibilityGenerator() {
                     Breaks First
                   </h4>
                   <ul className="space-y-2">
-                    {textToListItems(analysis.breaksFirst).map((item, index) => (
+                    {getListItems(analysis.breaksFirst).map((item, index) => (
                       <li key={index} className="text-sm text-gray-200 flex items-start gap-2">
                         <span className="text-yellow-400 mt-1.5">•</span>
                         <span>{item}</span>
