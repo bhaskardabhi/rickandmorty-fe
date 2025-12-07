@@ -2,6 +2,10 @@
 
 A modern web application to explore the Rick & Morty universe with AI-powered descriptions, evaluations, and semantic search.
 
+## Demo
+
+Watch the demo video: [YouTube Demo](https://www.youtube.com/watch?v=8hYPYQutoio)
+
 ## Features
 
 - **Locations Page**: Browse all locations with AI-generated descriptions and quality evaluations
@@ -371,3 +375,7 @@ This section documents the key architectural decisions made in building this fro
 - **Apollo Client**: Best-in-class GraphQL client with caching
 - **React Router**: Industry-standard routing solution
 - **Tailwind CSS**: Rapid UI development with utility classes
+
+## Development Notes
+
+**Git Workflow**: This project was developed as a small, solo project, and commits were made directly to the `master` branch for simplicity. While this approach worked well for a single-developer project, it's worth noting that in team environments or production settings, it's generally recommended to use feature branches, pull requests, and a more structured git workflow to facilitate code review, collaboration, and maintain a stable main branch.
