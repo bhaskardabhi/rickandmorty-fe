@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@apollo/client';
 import { Link } from 'react-router-dom';
 import { GET_LOCATIONS, GET_CHARACTERS_INFO } from '@/lib/graphql/queries';
@@ -22,6 +22,7 @@ export default function Home() {
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
   const { loading, error, data } = useQuery(GET_LOCATIONS, {
     variables: { page },
   });
@@ -105,15 +106,25 @@ export default function Home() {
           
           {/* Search Bar with Autosuggest */}
           <div className="max-w-2xl mx-auto mb-8">
-            <div className="relative">
+            <div className="relative" ref={searchContainerRef}>
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => searchQuery.trim() && setShowSuggestions(true)}
-                onBlur={() => {
+                onBlur={(e) => {
+                  // Check if the blur is caused by clicking inside the suggestions dropdown
+                  const relatedTarget = e.relatedTarget as HTMLElement;
+                  if (searchContainerRef.current && relatedTarget && searchContainerRef.current.contains(relatedTarget)) {
+                    return; // Don't hide if clicking inside the dropdown
+                  }
                   // Delay hiding to allow clicks on suggestions
-                  setTimeout(() => setShowSuggestions(false), 200);
+                  setTimeout(() => {
+                    // Double-check that we're not clicking inside the container
+                    if (!searchContainerRef.current?.contains(document.activeElement)) {
+                      setShowSuggestions(false);
+                    }
+                  }, 200);
                 }}
                 placeholder="Search characters or locations..."
                 className="w-full px-6 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-rick-green focus:border-transparent text-lg"
@@ -133,6 +144,10 @@ export default function Home() {
                         key={`char-${result.id}`}
                         to={`/character/${result.id}`}
                         className="flex items-center gap-3 p-3 hover:bg-white/10 transition-colors border-b border-white/5 last:border-b-0"
+                        onMouseDown={(e) => {
+                          // Prevent blur from firing before click
+                          e.preventDefault();
+                        }}
                         onClick={() => {
                           setSearchQuery('');
                           setShowSuggestions(false);
@@ -158,6 +173,10 @@ export default function Home() {
                         key={`loc-${result.id}`}
                         to={`/location/${result.id}`}
                         className="flex items-center gap-3 p-3 hover:bg-white/10 transition-colors border-b border-white/5 last:border-b-0"
+                        onMouseDown={(e) => {
+                          // Prevent blur from firing before click
+                          e.preventDefault();
+                        }}
                         onClick={() => {
                           setSearchQuery('');
                           setShowSuggestions(false);
